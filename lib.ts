@@ -65,11 +65,17 @@ export async function createSandbox(): Promise<Sandbox> {
     await sbx.files.write('/home/user/.tdc/credentials', credentials)
     await run(sbx, 'secure-profile', 'chmod 700 /home/user/.tdc && chmod 600 /home/user/.tdc/credentials')
     await run(sbx, 'fuse-device', 'if [ -c /dev/fuse ] && [ ! -w /dev/fuse ]; then sudo chmod 0666 /dev/fuse; fi')
-    await run(
-      sbx,
-      'mount',
-      `tdc fs mount-file-system --mount-path ${MOUNT_PATH} --remote-path ${REMOTE_PATH} --ready-timeout 60s`
-    )
+    try {
+      await run(
+        sbx,
+        'mount',
+        `tdc fs mount-file-system --mount-path ${MOUNT_PATH} --remote-path ${REMOTE_PATH} --ready-timeout 60s`
+      )
+    } catch (err) {
+      throw new Error(
+        `tdc fs mount failed inside the sandbox — check E2B network egress to the fs data plane and the TDC_FS_* values in .env. Cause: ${err}`
+      )
+    }
     return sbx
   } catch (err) {
     try {
@@ -100,7 +106,10 @@ export function hostTdc(...args: string[]): string {
 export function ensureRemoteDir(): void {
   try {
     execFileSync('tdc', ['fs', 'create-directory', '--path', REMOTE_PATH, '--mode', '0755'], { stdio: 'pipe' })
-  } catch {
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException)?.code === 'ENOENT') {
+      throw new Error("'tdc' CLI not found on PATH — install it first: https://github.com/tidbcloud/tdc")
+    }
     // Directory already exists — create-directory is the only expected failure here;
     // a real connectivity/credential problem will resurface loudly on the next command.
   }

@@ -26,14 +26,14 @@ requireEnvs([
 
 const llm = llmClient()
 
-async function ask(prompt: string, maxTokens: number): Promise<string> {
+async function ask(label: string, prompt: string, maxTokens: number): Promise<string> {
   const r = await llm.chat.completions.create({
     model: LLM_MODEL,
     max_tokens: maxTokens,
     messages: [{ role: 'user', content: prompt }],
   })
   const text = (r.choices[0]?.message?.content ?? '').trim()
-  if (!text) throw new Error(`empty completion from ${LLM_MODEL}`)
+  if (!text) throw new Error(`empty completion from ${LLM_MODEL} (${label})`)
   return text
 }
 
@@ -43,7 +43,11 @@ console.log('=== Act 1: Agent 1 writes a question to the shared filesystem ===')
 const sbx1 = await createSandbox()
 let question: string
 try {
-  question = await ask('Ask one interesting philosophical question. Just the question, nothing else.', 256)
+  question = await ask(
+    'act-1 question',
+    'Ask one interesting philosophical question. Just the question, nothing else.',
+    1024
+  )
   await sbx1.files.write(`${MOUNT_PATH}/question.txt`, question)
   console.log(`Agent 1 wrote: "${question}"`)
 } finally {
@@ -55,7 +59,7 @@ const sbx2 = await createSandbox()
 try {
   const question2 = (await run(sbx2, 'read-question', `cat ${MOUNT_PATH}/question.txt`)).trim()
   console.log(`Agent 2 read: "${question2}"`)
-  const answer = await ask(`Answer this question thoughtfully in 2-3 sentences: ${question2}`, 512)
+  const answer = await ask('act-2 answer', `Answer this question thoughtfully in 2-3 sentences: ${question2}`, 1024)
   await sbx2.files.write(`${MOUNT_PATH}/answer.txt`, answer)
   console.log(`Agent 2 wrote: "${answer}"`)
 } finally {

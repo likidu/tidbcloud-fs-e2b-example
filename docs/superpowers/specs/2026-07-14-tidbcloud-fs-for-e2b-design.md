@@ -48,7 +48,7 @@ Mirrors `drive9-for-e2b` so the comparison is self-evident:
 | Variable | Purpose |
 | --- | --- |
 | `E2B_API_KEY` | E2B sandbox access |
-| `E2B_TEMPLATE_ID` | Template built from `template.ts` |
+| `E2B_TEMPLATE_NAME` | Template alias built by `template.ts` (default `tidbcloud-fs-workspace-dev`) |
 | `LLM_API_KEY` | Z.ai (or compatible) API key |
 | `LLM_BASE_URL` | Default `https://api.z.ai/api/paas/v4` |
 | `LLM_MODEL` | Default `glm-5.2` |
