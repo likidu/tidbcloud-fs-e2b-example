@@ -215,7 +215,7 @@ git commit -m "feat: add E2B template with FUSE3 and tdc CLI"
   - `createSandbox(): Promise<Sandbox>` — create, write profile files, mount, return
   - `run(sbx: Sandbox, label: string, cmd: string, timeoutMs?: number): Promise<string>` — returns stdout, throws on non-zero exit
   - `unmountAndKill(sbx: Sandbox): Promise<void>`
-  - `hostTdc(args: string): string` — echoes and runs `tdc fs <args>` on the host, returns stdout
+  - `hostTdc(...args: string[]): string` — echoes and runs `tdc fs <args...>` on the host via `execFileSync` (no shell), returns stdout
   - `ensureRemoteDir(): void` — idempotently creates `REMOTE_PATH` host-side
 
 - [ ] **Step 1: Write the failing unit test (`lib.unit.ts`)**
@@ -273,7 +273,7 @@ Expected: FAIL — cannot resolve `./lib`.
 
 ```ts
 import 'dotenv/config'
-import { execSync } from 'node:child_process'
+import { execFileSync } from 'node:child_process'
 import { Sandbox } from 'e2b'
 import OpenAI from 'openai'
 
@@ -333,17 +333,27 @@ export async function run(sbx: Sandbox, label: string, cmd: string, timeoutMs = 
 export async function createSandbox(): Promise<Sandbox> {
   const sbx = await Sandbox.create(TEMPLATE_NAME, { timeoutMs: 300_000 })
   console.log(`  sandbox ${sbx.sandboxId} created`)
-  const { config, credentials } = renderTdcProfile(process.env)
-  await sbx.files.write('/home/user/.tdc/config', config)
-  await sbx.files.write('/home/user/.tdc/credentials', credentials)
-  await run(sbx, 'secure-profile', 'chmod 700 /home/user/.tdc && chmod 600 /home/user/.tdc/credentials')
-  await run(sbx, 'fuse-device', 'if [ -c /dev/fuse ] && [ ! -w /dev/fuse ]; then sudo chmod 0666 /dev/fuse; fi')
-  await run(
-    sbx,
-    'mount',
-    `tdc fs mount-file-system --mount-path ${MOUNT_PATH} --remote-path ${REMOTE_PATH} --ready-timeout 60s`
-  )
-  return sbx
+  try {
+    const { config, credentials } = renderTdcProfile(process.env)
+    await sbx.files.write('/home/user/.tdc/config', config)
+    await sbx.files.write('/home/user/.tdc/credentials', credentials)
+    await run(sbx, 'secure-profile', 'chmod 700 /home/user/.tdc && chmod 600 /home/user/.tdc/credentials')
+    await run(sbx, 'fuse-device', 'if [ -c /dev/fuse ] && [ ! -w /dev/fuse ]; then sudo chmod 0666 /dev/fuse; fi')
+    await run(
+      sbx,
+      'mount',
+      `tdc fs mount-file-system --mount-path ${MOUNT_PATH} --remote-path ${REMOTE_PATH} --ready-timeout 60s`
+    )
+    return sbx
+  } catch (err) {
+    // Spec: any error path kills created sandboxes — never leak a billed sandbox.
+    try {
+      await sbx.kill()
+    } catch (killErr) {
+      console.log(`  failed to kill sandbox ${sbx.sandboxId} after setup error: ${killErr}`)
+    }
+    throw err
+  }
 }
 
 export async function unmountAndKill(sbx: Sandbox): Promise<void> {
@@ -355,17 +365,16 @@ export async function unmountAndKill(sbx: Sandbox): Promise<void> {
   }
 }
 
-export function hostTdc(args: string): string {
-  const cmd = `tdc fs ${args}`
-  console.log(`$ ${cmd}`)
-  const out = execSync(cmd, { encoding: 'utf8' })
+export function hostTdc(...args: string[]): string {
+  console.log(`$ ${['tdc', 'fs', ...args].join(' ')}`)
+  const out = execFileSync('tdc', ['fs', ...args], { encoding: 'utf8' })
   console.log(out.trim())
   return out
 }
 
 export function ensureRemoteDir(): void {
   try {
-    execSync(`tdc fs create-directory --path ${REMOTE_PATH} --mode 0755`, { stdio: 'pipe' })
+    execFileSync('tdc', ['fs', 'create-directory', '--path', REMOTE_PATH, '--mode', '0755'], { stdio: 'pipe' })
   } catch {
     // Directory already exists — create-directory is the only expected failure here;
     // a real connectivity/credential problem will resurface loudly on the next command.
@@ -442,11 +451,11 @@ try {
 }
 
 console.log('smoke: mountless read from host after sandbox death')
-const remote = hostTdc(`cat --path ${REMOTE_PATH}/smoke.txt`).trim()
+const remote = hostTdc('cat', '--path', `${REMOTE_PATH}/smoke.txt`).trim()
 if (remote !== stamp) {
   throw new Error(`mountless read mismatch: wrote ${JSON.stringify(stamp)}, got ${JSON.stringify(remote)}`)
 }
-hostTdc(`rm --path ${REMOTE_PATH}/smoke.txt`)
+hostTdc('rm', '--path', `${REMOTE_PATH}/smoke.txt`)
 
 console.log('SMOKE TEST PASSED')
 ```
@@ -546,10 +555,10 @@ try {
 }
 
 console.log('\n=== Act 3: both sandboxes are dead — read everything with no mount at all ===')
-hostTdc(`ls --path ${REMOTE_PATH}`)
-hostTdc(`cat --path ${REMOTE_PATH}/answer.txt`)
+hostTdc('ls', '--path', REMOTE_PATH)
+hostTdc('cat', '--path', `${REMOTE_PATH}/answer.txt`)
 const keyword = (question.match(/[A-Za-z]{5,}/g) ?? ['question'])[0]
-hostTdc(`grep --pattern ${JSON.stringify(keyword)} --path ${REMOTE_PATH}`)
+hostTdc('grep', '--pattern', keyword, '--path', REMOTE_PATH)
 
 console.log('\nThe filesystem outlived both sandboxes, and act 3 never mounted anything.')
 ```
