@@ -7,6 +7,7 @@ import {
   requireEnvs,
   run,
   unmountAndKill,
+  writeFileViaMount,
 } from './lib'
 
 requireEnvs([
@@ -27,7 +28,7 @@ console.log('smoke: sandbox mount, write, read-back')
 ensureRemoteDir()
 const sbx = await createSandbox()
 try {
-  await sbx.files.write(`${MOUNT_PATH}/smoke.txt`, stamp)
+  await writeFileViaMount(sbx, `${MOUNT_PATH}/smoke.txt`, stamp)
   const back = (await run(sbx, 'read-back', `cat ${MOUNT_PATH}/smoke.txt`)).trim()
   if (back !== stamp) {
     throw new Error(`read-back mismatch: wrote ${JSON.stringify(stamp)}, got ${JSON.stringify(back)}`)

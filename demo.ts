@@ -9,6 +9,7 @@ import {
   requireEnvs,
   run,
   unmountAndKill,
+  writeFileViaMount,
 } from './lib'
 
 requireEnvs([
@@ -48,7 +49,7 @@ try {
     'Ask one interesting philosophical question. Just the question, nothing else.',
     1024
   )
-  await sbx1.files.write(`${MOUNT_PATH}/question.txt`, question)
+  await writeFileViaMount(sbx1, `${MOUNT_PATH}/question.txt`, question)
   console.log(`Agent 1 wrote: "${question}"`)
 } finally {
   await unmountAndKill(sbx1)
@@ -60,7 +61,7 @@ try {
   const question2 = (await run(sbx2, 'read-question', `cat ${MOUNT_PATH}/question.txt`)).trim()
   console.log(`Agent 2 read: "${question2}"`)
   const answer = await ask('act-2 answer', `Answer this question thoughtfully in 2-3 sentences: ${question2}`, 1024)
-  await sbx2.files.write(`${MOUNT_PATH}/answer.txt`, answer)
+  await writeFileViaMount(sbx2, `${MOUNT_PATH}/answer.txt`, answer)
   console.log(`Agent 2 wrote: "${answer}"`)
 } finally {
   await unmountAndKill(sbx2)
