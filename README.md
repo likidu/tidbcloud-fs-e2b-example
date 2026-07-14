@@ -46,6 +46,9 @@ also an API.
   targets [Z.ai's GLM-5.2](https://docs.z.ai/guides/overview/quick-start) — an
   open-weight (MIT) model — but OpenRouter, Together, or a self-hosted
   vLLM/SGLang server all work: set `LLM_BASE_URL` and `LLM_MODEL`.
+  GLM Coding Plan subscribers should set
+  `LLM_BASE_URL=https://api.z.ai/api/coding/paas/v4` — plan quota is served
+  through the coding endpoint, not the pay-as-you-go one.
 
 ## Quickstart
 
