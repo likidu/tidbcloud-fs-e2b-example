@@ -78,4 +78,4 @@ Mirrors `drive9-for-e2b` so the comparison is self-evident:
 
 ## Results / review
 
-_To be filled in at wrap-up._
+Implemented 2026-07-14 on branch `impl/e2b-example` per `tasks/plan.md` (see its Results section for detail). All static verification passed (typecheck, unit tests, per-task reviews). The three open items remain pending on live credentials: template build against the published release, E2B→fs network reachability (first `npm test`), and Z.ai endpoint confirmation (first `npm run demo`). One design-level correction discovered in review: host-side `tdc` invocations are argv-based (`execFileSync`), not shell-interpolated, and `createSandbox` kills the sandbox on any setup failure — both now reflected in the plan.

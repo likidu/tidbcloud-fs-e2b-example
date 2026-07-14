@@ -28,7 +28,7 @@
 **Interfaces:**
 - Produces: npm scripts `build`, `test`, `test:unit`, `demo`, `typecheck` used by all later tasks; the `.env` contract every later task reads.
 
-- [ ] **Step 1: Write `package.json`**
+- [x] **Step 1: Write `package.json`**
 
 ```json
 {
@@ -48,7 +48,7 @@
 }
 ```
 
-- [ ] **Step 2: Write `tsconfig.json`**
+- [x] **Step 2: Write `tsconfig.json`**
 
 ```json
 {
@@ -65,14 +65,14 @@
 }
 ```
 
-- [ ] **Step 3: Write `.gitignore`**
+- [x] **Step 3: Write `.gitignore`**
 
 ```
 node_modules/
 .env
 ```
 
-- [ ] **Step 4: Write `.env.example`**
+- [x] **Step 4: Write `.env.example`**
 
 ```
 # E2B
@@ -103,17 +103,17 @@ TDC_FS_API_KEY=
 # TDC_INSTALL_URL=
 ```
 
-- [ ] **Step 5: Install dependencies (latest resolutions, recorded into package.json)**
+- [x] **Step 5: Install dependencies (latest resolutions, recorded into package.json)**
 
 Run: `npm install dotenv e2b openai && npm install -D typescript tsx @types/node`
 Expected: `package.json` gains `dependencies`/`devDependencies` blocks; `package-lock.json` created; exit 0.
 
-- [ ] **Step 6: Verify typecheck runs clean on the empty project**
+- [x] **Step 6: Verify typecheck runs clean on the empty project**
 
 Run: `npm run typecheck`
 Expected: exit 0 (no input files is acceptable at this stage — if tsc errors with "No inputs were found", create an empty `lib.ts` placeholder is NOT the fix; instead pass because Task 2 adds the first .ts file. If tsc exits non-zero solely for "no inputs", note it and proceed.)
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add package.json package-lock.json tsconfig.json .gitignore .env.example
@@ -130,7 +130,7 @@ git commit -m "chore: scaffold tidbcloud-fs-for-e2b project"
 **Interfaces:**
 - Produces: exported `template` (E2B Template definition); template alias from `E2B_TEMPLATE_NAME` env (default `tidbcloud-fs-workspace-dev`) that `lib.ts` passes to `Sandbox.create`.
 
-- [ ] **Step 1: Write `template.ts`**
+- [x] **Step 1: Write `template.ts`**
 
 ```ts
 import { Template } from 'e2b'
@@ -159,7 +159,7 @@ export const template = Template()
   .setWorkdir('/home/user')
 ```
 
-- [ ] **Step 2: Write `build.ts`**
+- [x] **Step 2: Write `build.ts`**
 
 ```ts
 import 'dotenv/config'
@@ -180,7 +180,7 @@ console.log(`built template '${alias}': ${result.templateId}`)
 
 Note: if the installed `e2b` version's `Template.build` signature differs (e.g. option named `name` instead of `alias`), fix against `node_modules/e2b/dist/index.d.ts` — do not guess.
 
-- [ ] **Step 3: Typecheck**
+- [x] **Step 3: Typecheck**
 
 Run: `npm run typecheck`
 Expected: exit 0.
@@ -191,7 +191,7 @@ Run: `npm run build`
 Expected: build log ends with `built template 'tidbcloud-fs-workspace-dev': <id>`.
 If the tdc GitHub release is not yet published, set `TDC_INSTALL_URL` in `.env` to a reachable copy of `install.sh` (or an internal URL serving a Linux amd64 build) and rerun. If no E2B key is available, mark this step pending in the commit message.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add template.ts build.ts
@@ -218,7 +218,7 @@ git commit -m "feat: add E2B template with FUSE3 and tdc CLI"
   - `hostTdc(...args: string[]): string` — echoes and runs `tdc fs <args...>` on the host via `execFileSync` (no shell), returns stdout
   - `ensureRemoteDir(): void` — idempotently creates `REMOTE_PATH` host-side
 
-- [ ] **Step 1: Write the failing unit test (`lib.unit.ts`)**
+- [x] **Step 1: Write the failing unit test (`lib.unit.ts`)**
 
 ```ts
 import assert from 'node:assert/strict'
@@ -264,12 +264,12 @@ requireEnvs(['PATH']) // present everywhere; must not throw
 console.log('lib.unit.ts: all assertions passed')
 ```
 
-- [ ] **Step 2: Run it to verify it fails**
+- [x] **Step 2: Run it to verify it fails**
 
 Run: `npm run test:unit`
 Expected: FAIL — cannot resolve `./lib`.
 
-- [ ] **Step 3: Write `lib.ts`**
+- [x] **Step 3: Write `lib.ts`**
 
 ```ts
 import 'dotenv/config'
@@ -382,17 +382,17 @@ export function ensureRemoteDir(): void {
 }
 ```
 
-- [ ] **Step 4: Run unit test to verify it passes**
+- [x] **Step 4: Run unit test to verify it passes**
 
 Run: `npm run test:unit`
 Expected: `lib.unit.ts: all assertions passed`, exit 0.
 
-- [ ] **Step 5: Typecheck**
+- [x] **Step 5: Typecheck**
 
 Run: `npm run typecheck`
 Expected: exit 0. If `sbx.files.write` / `sbx.commands.run` option names differ in the installed e2b version, fix against `node_modules/e2b/dist/index.d.ts`.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add lib.ts lib.unit.ts
@@ -409,7 +409,7 @@ git commit -m "feat: sandbox lifecycle, tdc profile bootstrap, and LLM client li
 **Interfaces:**
 - Consumes: everything in `lib.ts` except `llmClient` (no LLM dependency by design — this is the pre-demo rehearsal).
 
-- [ ] **Step 1: Write `test.ts`**
+- [x] **Step 1: Write `test.ts`**
 
 ```ts
 import {
@@ -460,7 +460,7 @@ hostTdc('rm', '--path', `${REMOTE_PATH}/smoke.txt`)
 console.log('SMOKE TEST PASSED')
 ```
 
-- [ ] **Step 2: Typecheck**
+- [x] **Step 2: Typecheck**
 
 Run: `npm run typecheck`
 Expected: exit 0.
@@ -470,7 +470,7 @@ Expected: exit 0.
 Run: `npm test`
 Expected: ends with `SMOKE TEST PASSED`, exit 0. This step also settles design open item 2 (E2B sandbox → fs data-plane network reachability). If it fails on mount readiness, capture the mount error output verbatim before touching anything — it distinguishes network egress from credential problems.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add test.ts
@@ -487,7 +487,7 @@ git commit -m "feat: mount/write/read smoke test with mountless host verificatio
 **Interfaces:**
 - Consumes: everything in `lib.ts`.
 
-- [ ] **Step 1: Write `demo.ts`**
+- [x] **Step 1: Write `demo.ts`**
 
 ```ts
 import {
@@ -563,7 +563,7 @@ hostTdc('grep', '--pattern', keyword, '--path', REMOTE_PATH)
 console.log('\nThe filesystem outlived both sandboxes, and act 3 never mounted anything.')
 ```
 
-- [ ] **Step 2: Typecheck**
+- [x] **Step 2: Typecheck**
 
 Run: `npm run typecheck`
 Expected: exit 0.
@@ -573,7 +573,7 @@ Expected: exit 0.
 Run: `npm run demo`
 Expected: three act banners; act 3 prints each `$ tdc fs ...` command followed by its output; final line about the filesystem outliving the sandboxes; exit 0.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add demo.ts
@@ -588,7 +588,7 @@ git commit -m "feat: 3-act demo with mountless finale"
 - Create: `README.md`
 - Modify: `tasks/plan.md` (results section), `docs/superpowers/specs/2026-07-14-tidbcloud-fs-for-e2b-design.md` (results section)
 
-- [ ] **Step 1: Write `README.md`**
+- [x] **Step 1: Write `README.md`**
 
 ````markdown
 # TiDB Cloud FS for E2B
@@ -656,16 +656,16 @@ inside each sandbox from your `.env` values before mounting. See `renderTdcProfi
   (`tdc fs-vault create-token`)
 ````
 
-- [ ] **Step 2: Verify quickstart accuracy against reality**
+- [x] **Step 2: Verify quickstart accuracy against reality**
 
 Run: `npm install && npm run typecheck && npm run test:unit`
 Expected: all exit 0 — confirming the README's quickstart commands exist and the repo is clonable-and-runnable up to the credential-gated steps.
 
-- [ ] **Step 3: Add results/review sections to `tasks/plan.md` and the design spec**
+- [x] **Step 3: Add results/review sections to `tasks/plan.md` and the design spec**
 
 Record: what was verified live vs pending (template build, smoke, demo), any deviations from plan, and the resolution of the three design open items (install URL, E2B network reachability, Z.ai endpoint).
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add README.md tasks/plan.md docs/superpowers/specs/2026-07-14-tidbcloud-fs-for-e2b-design.md
@@ -676,4 +676,33 @@ git commit -m "docs: README, plan results, and spec wrap-up"
 
 ## Results / Review
 
-_To be filled in at wrap-up: what was verified live vs pending, deviations from plan, and resolution of the three design open items._
+### What was built
+
+All six tasks executed via subagent-driven development on branch `impl/e2b-example` (2026-07-14). Final tree: `package.json`, `tsconfig.json`, `.gitignore`, `.env.example`, `template.ts`, `build.ts`, `lib.ts`, `lib.unit.ts`, `test.ts`, `demo.ts`, `README.md`. Deps resolved: e2b@2.33.0, openai@6.46.0, dotenv@17.4.2, typescript@7.0.2, tsx@4.23.1.
+
+### Verified in this environment
+
+- `npm run typecheck` — exit 0 (all files, TypeScript 7).
+- `npm run test:unit` — all assertions pass (TOML rendering incl. quote/backslash escaping round-trip, requireEnvs).
+- Per-task spec+quality reviews: all six tasks approved; Task 3 required one fix round (below).
+- e2b@2.33.0 API surface verified against installed typings (Template.build deprecated overload, commands.run throw-on-nonzero, files.write parent-dir creation).
+- `install.sh` flags (`--version`, `--install-dir`, `--yes`) verified against the tdc repo's actual script.
+
+### Pending (no credentials in this environment — run once `.env` is populated)
+
+- Task 2 Step 4: `npm run build` (E2B template build) — also settles design open item 1 (release URL) once the technical-preview release is live.
+- Task 4 Step 3: `npm test` (live smoke) — settles design open item 2 (E2B→fs data-plane network reachability).
+- Task 5 Step 3: `npm run demo` — settles design open item 3 (Z.ai endpoint/model id) on first real LLM call.
+
+### Deviations from plan
+
+1. **Review-driven fixes to lib.ts (commit a048e44):** `createSandbox` now kills the sandbox on any post-create failure (spec's "any error path kills created sandboxes" was under-implemented in the plan's original snippet); `hostTdc`/`ensureRemoteDir` switched from shell `execSync` to argv-based `execFileSync` (`hostTdc(...args: string[])`) to remove a shell-injection surface. Plan snippets and Task 4/5 call sites were synced (commit e992b85).
+2. Live verification steps deferred as pending rather than executed — no `.env`, no host `tdc` binary in this environment.
+
+### Minor findings deferred to/through final review
+
+- `hostTdc` echo line joins argv with spaces (cosmetic ambiguity if an arg contains a space).
+- `toml()` leaves U+007F unescaped (theoretical; keys are hex/base64-shaped).
+- `test.ts` mountless stage: `rm` cleanup not in try/finally (self-healing — next run overwrites smoke.txt).
+- `ask()` empty-completion error doesn't say which act it fired in.
+- `template.ts` overwrites `/etc/fuse.conf` rather than appending (stock file is comments only).
