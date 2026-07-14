@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "license": "MIT",
+  "packageManager": "pnpm@10.33.0",
   "description": "E2B sandbox template and examples for TiDB Cloud FS shared workspaces, with an OpenAI-compatible LLM (GLM-5.2 default).",
   "scripts": {
     "build": "tsx build.ts",

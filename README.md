@@ -41,11 +41,11 @@ also an API.
 ## Quickstart
 
 ```bash
-npm install
+pnpm install
 cp .env.example .env   # fill it in; fs_* values come from ~/.tdc/config and ~/.tdc/credentials
-npm run build          # build the E2B template (once)
-npm test               # smoke test: mount, write, read back, mountless verify
-npm run demo           # the 3-act demo
+pnpm build             # build the E2B template (once)
+pnpm test              # smoke test: mount, write, read back, mountless verify
+pnpm demo              # the 3-act demo
 ```
 
 ## How the sandbox gets credentials
