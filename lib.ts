@@ -59,11 +59,12 @@ export async function run(sbx: Sandbox, label: string, cmd: string, timeoutMs = 
 // The tdc FUSE mount is visible only to the user that mounted it (tdc has no
 // allow_other option yet), and E2B's files API runs as a different user. So:
 // stage the content on /tmp via the files API, then move it into the mount as
-// the mounting user.
+// the mounting user. The target is unlinked first: overwriting an existing
+// remote file through the mount currently fails with ESTALE on close.
 export async function writeFileViaMount(sbx: Sandbox, path: string, content: string): Promise<void> {
   const tmp = `/tmp/tdc-write-${Math.random().toString(36).slice(2)}`
   await sbx.files.write(tmp, content)
-  await run(sbx, 'write', `cp ${tmp} ${path} && rm -f ${tmp}`)
+  await run(sbx, 'write', `rm -f ${path} && cp ${tmp} ${path} && rm -f ${tmp}`)
 }
 
 export async function createSandbox(): Promise<Sandbox> {
