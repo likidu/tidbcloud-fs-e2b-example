@@ -712,3 +712,11 @@ All six tasks executed via subagent-driven development on branch `impl/e2b-examp
 Verdict: ready to merge **with fixes** — all actionable findings applied in commit `a5501926` (LICENSE, `ensureRemoteDir` ENOENT surfacing, mount-failure hint per spec, non-deprecated `Template.build(template, name, options)` signature with `TEMPLATE_NAME` imported from lib.ts, act-labeled LLM errors with 1024-token caps, spec env-table correction). All five earlier deferred minors triaged fine-as-is.
 
 **Pre-publication user decisions (not merge blockers):** remove `docs/shared-example.ts` (the archived Archil reference sample) from the public tree; strip or rewrite the internal docs (`docs/superpowers/specs/`, `tasks/plan.md`) which name drive9 provenance and the parity-demo intent; publish via a fresh history rather than this branch's history, since deleted files remain in past commits.
+
+### Live verification round (2026-07-14, later)
+
+- Host `tdc` built from source (darwin/arm64, `~/.local/bin/tdc`) after installing Go; host profile bootstrapped from `.env` (one-off script; `~/.tdc` had no config).
+- `pnpm build` ✅ — template builds with the local tarball (`TDC_TARBALL_PATH`); resolves open item 1 for the pre-release path.
+- `pnpm test` ✅ **SMOKE TEST PASSED live** — mount inside E2B works (open item 2 resolved: sandbox egress reaches the fs data plane), FUSE write/read round-trip, mountless host read + cleanup after sandbox death.
+- `pnpm demo` — acts run, but the LLM call fails with Z.ai `429 Insufficient balance`; blocked on account recharge, not code (open item 3 still pending on first successful call). Sandbox cleanup on the failure path worked as designed.
+- **New deviation:** `writeFileViaMount` staging helper added — tdc FUSE mounts lack `allow_other`, so E2B's files API (different user than the mounting user) gets EACCES writing into the mount directly. Filed as tdc product feedback: add `--allow-other` to `tdc fs mount-file-system` (requires `user_allow_other` in fuse.conf, which the template already sets).
