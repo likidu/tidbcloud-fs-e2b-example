@@ -1,0 +1,25 @@
+{
+  "name": "tidbcloud-fs-for-e2b",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "description": "E2B sandbox template and examples for TiDB Cloud FS shared workspaces, with an OpenAI-compatible LLM (GLM-5.2 default).",
+  "scripts": {
+    "build": "tsx build.ts",
+    "test:unit": "tsx lib.unit.ts",
+    "test": "tsx test.ts",
+    "demo": "tsx demo.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "e2b": "^2.33.0",
+    "openai": "^6.46.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.1",
+    "tsx": "^4.23.1",
+    "typescript": "^7.0.2"
+  }
+}
