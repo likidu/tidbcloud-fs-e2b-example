@@ -706,3 +706,9 @@ All six tasks executed via subagent-driven development on branch `impl/e2b-examp
 - `test.ts` mountless stage: `rm` cleanup not in try/finally (self-healing — next run overwrites smoke.txt).
 - `ask()` empty-completion error doesn't say which act it fired in.
 - `template.ts` overwrites `/etc/fuse.conf` rather than appending (stock file is comments only).
+
+### Final whole-branch review (2026-07-14)
+
+Verdict: ready to merge **with fixes** — all actionable findings applied in commit `a5501926` (LICENSE, `ensureRemoteDir` ENOENT surfacing, mount-failure hint per spec, non-deprecated `Template.build(template, name, options)` signature with `TEMPLATE_NAME` imported from lib.ts, act-labeled LLM errors with 1024-token caps, spec env-table correction). All five earlier deferred minors triaged fine-as-is.
+
+**Pre-publication user decisions (not merge blockers):** remove `doc/shared-example.ts` (the archived Archil reference sample) from the public tree; strip or rewrite the internal docs (`docs/superpowers/specs/`, `tasks/plan.md`) which name drive9 provenance and the parity-demo intent; publish via a fresh history rather than this branch's history, since deleted files remain in past commits.
