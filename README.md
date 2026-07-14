@@ -26,12 +26,21 @@ also an API.
 
 - Node.js 20+
 - An [E2B](https://e2b.dev) API key
-- The [`tdc` CLI](https://github.com/tidbcloud/tdc) installed locally, with a
-  TiDB Cloud FS resource provisioned:
+- **TiDB Cloud API credentials** — in the [TiDB Cloud console](https://tidbcloud.com),
+  go to **Organization Settings → API Keys → Create API Key**. You get a
+  public/private key pair; put it in `TDC_PUBLIC_KEY` / `TDC_PRIVATE_KEY`
+  (the same pair also configures the CLI: `tdc configure`).
+- The [`tdc` CLI](https://github.com/tidbcloud/tdc) installed locally and
+  configured with those keys, with a TiDB Cloud FS resource provisioned:
 
   ```bash
+  tdc configure   # stores the API key pair in ~/.tdc/credentials
   tdc fs create-file-system --file-system-name workspace
   ```
+
+  `create-file-system` stores the generated `fs_*` values (resource name, tenant
+  id, region, and the fs API key) in `~/.tdc/config` and `~/.tdc/credentials` —
+  copy them into the matching `TDC_FS_*` variables in `.env`.
 
 - An LLM API key for any OpenAI-compatible endpoint. The default configuration
   targets [Z.ai's GLM-5.2](https://docs.z.ai/guides/overview/quick-start) — an
