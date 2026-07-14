@@ -1,5 +1,5 @@
 import 'dotenv/config'
-import { execSync } from 'node:child_process'
+import { execFileSync } from 'node:child_process'
 import { Sandbox } from 'e2b'
 import OpenAI from 'openai'
 
@@ -59,17 +59,26 @@ export async function run(sbx: Sandbox, label: string, cmd: string, timeoutMs = 
 export async function createSandbox(): Promise<Sandbox> {
   const sbx = await Sandbox.create(TEMPLATE_NAME, { timeoutMs: 300_000 })
   console.log(`  sandbox ${sbx.sandboxId} created`)
-  const { config, credentials } = renderTdcProfile(process.env)
-  await sbx.files.write('/home/user/.tdc/config', config)
-  await sbx.files.write('/home/user/.tdc/credentials', credentials)
-  await run(sbx, 'secure-profile', 'chmod 700 /home/user/.tdc && chmod 600 /home/user/.tdc/credentials')
-  await run(sbx, 'fuse-device', 'if [ -c /dev/fuse ] && [ ! -w /dev/fuse ]; then sudo chmod 0666 /dev/fuse; fi')
-  await run(
-    sbx,
-    'mount',
-    `tdc fs mount-file-system --mount-path ${MOUNT_PATH} --remote-path ${REMOTE_PATH} --ready-timeout 60s`
-  )
-  return sbx
+  try {
+    const { config, credentials } = renderTdcProfile(process.env)
+    await sbx.files.write('/home/user/.tdc/config', config)
+    await sbx.files.write('/home/user/.tdc/credentials', credentials)
+    await run(sbx, 'secure-profile', 'chmod 700 /home/user/.tdc && chmod 600 /home/user/.tdc/credentials')
+    await run(sbx, 'fuse-device', 'if [ -c /dev/fuse ] && [ ! -w /dev/fuse ]; then sudo chmod 0666 /dev/fuse; fi')
+    await run(
+      sbx,
+      'mount',
+      `tdc fs mount-file-system --mount-path ${MOUNT_PATH} --remote-path ${REMOTE_PATH} --ready-timeout 60s`
+    )
+    return sbx
+  } catch (err) {
+    try {
+      await sbx.kill()
+    } catch (killErr) {
+      console.log(`  failed to kill sandbox ${sbx.sandboxId} after setup error: ${killErr}`)
+    }
+    throw err
+  }
 }
 
 export async function unmountAndKill(sbx: Sandbox): Promise<void> {
@@ -81,17 +90,16 @@ export async function unmountAndKill(sbx: Sandbox): Promise<void> {
   }
 }
 
-export function hostTdc(args: string): string {
-  const cmd = `tdc fs ${args}`
-  console.log(`$ ${cmd}`)
-  const out = execSync(cmd, { encoding: 'utf8' })
+export function hostTdc(...args: string[]): string {
+  console.log(`$ ${['tdc', 'fs', ...args].join(' ')}`)
+  const out = execFileSync('tdc', ['fs', ...args], { encoding: 'utf8' })
   console.log(out.trim())
   return out
 }
 
 export function ensureRemoteDir(): void {
   try {
-    execSync(`tdc fs create-directory --path ${REMOTE_PATH} --mode 0755`, { stdio: 'pipe' })
+    execFileSync('tdc', ['fs', 'create-directory', '--path', REMOTE_PATH, '--mode', '0755'], { stdio: 'pipe' })
   } catch {
     // Directory already exists — create-directory is the only expected failure here;
     // a real connectivity/credential problem will resurface loudly on the next command.
