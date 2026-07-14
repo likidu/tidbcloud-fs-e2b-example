@@ -10,15 +10,12 @@ const TDC_INSTALL_URL =
 // image instead of downloading from GitHub Releases.
 const TDC_TARBALL_PATH = process.env.TDC_TARBALL_PATH
 
+// E2B's base image already provides the `user` account, passwordless sudo,
+// and curl — same starting point as the Archil/E2B storage integration.
 const base = Template()
-  .fromImage('ubuntu:22.04')
-  .aptInstall(['ca-certificates', 'curl', 'fuse3', 'procps', 'sudo'])
-  .runCmd('id -u user >/dev/null 2>&1 || useradd -m -s /bin/bash user', { user: 'root' })
-  .runCmd(
-    'usermod -aG sudo user && printf "user ALL=(ALL) NOPASSWD:ALL\\n" >/etc/sudoers.d/99-e2b-user && chmod 0440 /etc/sudoers.d/99-e2b-user',
-    { user: 'root' }
-  )
-  .runCmd('printf "user_allow_other\\n" >/etc/fuse.conf && chmod 0644 /etc/fuse.conf', { user: 'root' })
+  .fromBaseImage()
+  .aptInstall(['fuse3'])
+  .runCmd('printf "user_allow_other\\n" >>/etc/fuse.conf', { user: 'root' })
 
 const withTdc: TemplateBuilder = TDC_TARBALL_PATH
   ? base
