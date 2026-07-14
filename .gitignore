@@ -1,3 +1,4 @@
 node_modules/
 .env
-doc/*.tar.gz
+docs/*.tar.gz
+.DS_Store
