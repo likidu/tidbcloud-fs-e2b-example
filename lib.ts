@@ -2,6 +2,7 @@ import 'dotenv/config'
 import { execFileSync } from 'node:child_process'
 import { Sandbox } from 'e2b'
 import OpenAI from 'openai'
+import pc from 'picocolors'
 
 export const TEMPLATE_NAME = process.env.E2B_TEMPLATE_NAME || 'tidbcloud-fs-workspace-dev'
 export const MOUNT_PATH = '/home/user/workspace'
@@ -23,10 +24,10 @@ export function llmClient(): OpenAI {
 }
 
 export async function run(sbx: Sandbox, label: string, cmd: string, timeoutMs = 180_000): Promise<string> {
-  console.log(`  [${label}] ${cmd}`)
+  console.log(pc.dim(`  [${label}] ${cmd}`))
   const result = await sbx.commands.run(cmd, { timeoutMs })
   const err = result.stderr.trim()
-  if (err) console.log(`  [${label}] stderr: ${err}`)
+  if (err) console.log(pc.dim(`  [${label}] stderr: ${err}`))
   return result.stdout
 }
 
@@ -49,7 +50,7 @@ export async function createSandbox(): Promise<Sandbox> {
       TDC_FS_TOKEN: process.env.TDC_FS_TOKEN ?? '',
     },
   })
-  console.log(`  sandbox ${sbx.sandboxId} created`)
+  console.log(pc.dim(`  sandbox ${sbx.sandboxId} created`))
   try {
     await run(sbx, 'fuse-device', 'if [ -c /dev/fuse ] && [ ! -w /dev/fuse ]; then sudo chmod 0666 /dev/fuse; fi')
     try {
@@ -68,7 +69,7 @@ export async function createSandbox(): Promise<Sandbox> {
     try {
       await sbx.kill()
     } catch (killErr) {
-      console.log(`  failed to kill sandbox ${sbx.sandboxId} after setup error: ${killErr}`)
+      console.log(pc.dim(`  failed to kill sandbox ${sbx.sandboxId} after setup error: ${killErr}`))
     }
     throw err
   }
@@ -79,14 +80,14 @@ export async function unmountAndKill(sbx: Sandbox): Promise<void> {
     await run(sbx, 'unmount', `tdc fs unmount-file-system --mount-path ${MOUNT_PATH} --ignore-absent`)
   } finally {
     await sbx.kill()
-    console.log(`  sandbox ${sbx.sandboxId} killed`)
+    console.log(pc.dim(`  sandbox ${sbx.sandboxId} killed`))
   }
 }
 
 export function hostTdc(...args: string[]): string {
-  console.log(`$ ${['tdc', 'fs', ...args].join(' ')}`)
+  console.log(pc.dim(`$ ${['tdc', 'fs', ...args].join(' ')}`))
   const out = execFileSync('tdc', ['fs', ...args], { encoding: 'utf8' })
-  console.log(out.trim())
+  console.log(pc.dim(out.trim()))
   return out
 }
 

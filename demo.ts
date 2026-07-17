@@ -1,4 +1,5 @@
 import type OpenAI from 'openai'
+import pc from 'picocolors'
 import {
   LLM_MODEL,
   MOUNT_PATH,
@@ -33,7 +34,7 @@ async function ask(label: string, prompt: string, maxTokens: number): Promise<st
 
 ensureRemoteDir()
 
-console.log('=== Act 1: Agent 1 writes a question to the shared filesystem ===')
+console.log(pc.bold('=== Act 1: Agent 1 writes a question to the shared filesystem ==='))
 const sbx1 = await createSandbox()
 let question: string
 try {
@@ -43,24 +44,24 @@ try {
     1024
   )
   await writeFileViaMount(sbx1, `${MOUNT_PATH}/question.txt`, question)
-  console.log(`Agent 1 wrote: "${question}"`)
+  console.log(pc.bold(pc.green(`Agent 1 wrote: "${question}"`)))
 } finally {
   await unmountAndKill(sbx1)
 }
 
-console.log('\n=== Act 2: a brand-new sandbox mounts the same filesystem and answers ===')
+console.log(pc.bold('\n=== Act 2: a brand-new sandbox mounts the same filesystem and answers ==='))
 const sbx2 = await createSandbox()
 try {
   const question2 = (await run(sbx2, 'read-question', `cat ${MOUNT_PATH}/question.txt`)).trim()
-  console.log(`Agent 2 read: "${question2}"`)
+  console.log(pc.bold(pc.green(`Agent 2 read: "${question2}"`)))
   const answer = await ask('act-2 answer', `Answer this question thoughtfully in 2-3 sentences: ${question2}`, 1024)
   await writeFileViaMount(sbx2, `${MOUNT_PATH}/answer.txt`, answer)
-  console.log(`Agent 2 wrote: "${answer}"`)
+  console.log(pc.bold(pc.green(`Agent 2 wrote: "${answer}"`)))
 } finally {
   await unmountAndKill(sbx2)
 }
 
-console.log('\n=== Act 3: both sandboxes are dead — read everything with no mount at all ===')
+console.log(pc.bold('\n=== Act 3: both sandboxes are dead — read everything with no mount at all ==='))
 hostTdc('ls', '--path', REMOTE_PATH)
 hostTdc('cat', '--path', `${REMOTE_PATH}/answer.txt`)
 const keyword = (question.match(/[A-Za-z]{5,}/g) ?? ['question'])[0]

@@ -16,7 +16,8 @@
   "dependencies": {
     "dotenv": "^17.4.2",
     "e2b": "^2.33.0",
-    "openai": "^6.46.0"
+    "openai": "^6.46.0",
+    "picocolors": "^1.1.1"
   },
   "devDependencies": {
     "@types/node": "^26.1.1",
