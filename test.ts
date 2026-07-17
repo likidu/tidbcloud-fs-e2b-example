@@ -10,17 +10,7 @@ import {
   writeFileViaMount,
 } from './lib'
 
-requireEnvs([
-  'E2B_API_KEY',
-  'TDC_REGION_CODE',
-  'TDC_PUBLIC_KEY',
-  'TDC_PRIVATE_KEY',
-  'TDC_FS_RESOURCE_NAME',
-  'TDC_FS_TENANT_ID',
-  'TDC_FS_CLOUD_PROVIDER',
-  'TDC_FS_REGION_CODE',
-  'TDC_FS_API_KEY',
-])
+requireEnvs(['E2B_API_KEY', 'TDC_REGION_CODE', 'TDC_FS_FILE_SYSTEM_NAME', 'TDC_FS_TOKEN'])
 
 const stamp = `tdc fs smoke ${Date.now()}`
 

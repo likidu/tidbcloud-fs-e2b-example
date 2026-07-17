@@ -15,32 +15,6 @@ export function requireEnvs(names: string[]): void {
   }
 }
 
-// JSON string escaping is valid TOML basic-string escaping.
-const toml = (value: string) => JSON.stringify(value)
-
-export function renderTdcProfile(env: Record<string, string | undefined>): {
-  config: string
-  credentials: string
-} {
-  const config = [
-    '[default]',
-    `region_code = ${toml(env.TDC_REGION_CODE ?? '')}`,
-    `fs_resource_name = ${toml(env.TDC_FS_RESOURCE_NAME ?? '')}`,
-    `fs_tenant_id = ${toml(env.TDC_FS_TENANT_ID ?? '')}`,
-    `fs_cloud_provider = ${toml(env.TDC_FS_CLOUD_PROVIDER ?? '')}`,
-    `fs_region_code = ${toml(env.TDC_FS_REGION_CODE ?? '')}`,
-    '',
-  ].join('\n')
-  const credentials = [
-    '[default]',
-    `tdc_public_key = ${toml(env.TDC_PUBLIC_KEY ?? '')}`,
-    `tdc_private_key = ${toml(env.TDC_PRIVATE_KEY ?? '')}`,
-    `fs_api_key = ${toml(env.TDC_FS_API_KEY ?? '')}`,
-    '',
-  ].join('\n')
-  return { config, credentials }
-}
-
 export function llmClient(): OpenAI {
   return new OpenAI({
     apiKey: process.env.LLM_API_KEY,
@@ -68,13 +42,16 @@ export async function writeFileViaMount(sbx: Sandbox, path: string, content: str
 }
 
 export async function createSandbox(): Promise<Sandbox> {
-  const sbx = await Sandbox.create(TEMPLATE_NAME, { timeoutMs: 300_000 })
+  const sbx = await Sandbox.create(TEMPLATE_NAME, {
+    timeoutMs: 300_000,
+    envs: {
+      TDC_REGION_CODE: process.env.TDC_REGION_CODE ?? '',
+      TDC_FS_FILE_SYSTEM_NAME: process.env.TDC_FS_FILE_SYSTEM_NAME ?? '',
+      TDC_FS_TOKEN: process.env.TDC_FS_TOKEN ?? '',
+    },
+  })
   console.log(`  sandbox ${sbx.sandboxId} created`)
   try {
-    const { config, credentials } = renderTdcProfile(process.env)
-    await sbx.files.write('/home/user/.tdc/config', config)
-    await sbx.files.write('/home/user/.tdc/credentials', credentials)
-    await run(sbx, 'secure-profile', 'chmod 700 /home/user/.tdc && chmod 600 /home/user/.tdc/credentials')
     await run(sbx, 'fuse-device', 'if [ -c /dev/fuse ] && [ ! -w /dev/fuse ]; then sudo chmod 0666 /dev/fuse; fi')
     try {
       await run(
