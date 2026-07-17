@@ -26,21 +26,24 @@ also an API.
 
 - Node.js 20+
 - An [E2B](https://e2b.dev) API key
-- **TiDB Cloud API credentials** — in the [TiDB Cloud console](https://tidbcloud.com),
-  go to **Organization Settings → API Keys → Create API Key**. You get a
-  public/private key pair; put it in `TDC_PUBLIC_KEY` / `TDC_PRIVATE_KEY`
-  (the same pair also configures the CLI: `tdc configure`).
-- The [`tdc` CLI](https://github.com/tidbcloud/tdc) installed locally and
-  configured with those keys, with a TiDB Cloud FS resource provisioned:
+- The [`tdc` CLI](https://github.com/tidbcloud/tdc) installed locally, used once
+  to provision a TiDB Cloud FS resource:
 
   ```bash
-  tdc configure   # stores the API key pair in ~/.tdc/credentials
-  tdc fs create-file-system --file-system-name workspace
+  curl -fsSL https://github.com/tidbcloud/tdc/releases/latest/download/install.sh | sh -s -- --yes
+  export PATH="$HOME/.tdc/bin:$PATH"   # add to your shell profile to persist
+
+  tdc configure --non-interactive --region-code aws-us-east-1 \
+    --tdc-public-key <key> --tdc-private-key <key>   # from TiDB Cloud console → Organization Settings → API Keys
+  tdc fs create-file-system --file-system-name workspace \
+    --query fs_token --output text
   ```
 
-  `create-file-system` stores the generated `fs_*` values (resource name, tenant
-  id, region, and the fs API key) in `~/.tdc/config` and `~/.tdc/credentials` —
-  copy them into the matching `TDC_FS_*` variables in `.env`.
+  The last command prints an `fs_token` — a credential scoped to that one
+  filesystem. Put it in `.env` as `TDC_FS_TOKEN`, alongside `TDC_REGION_CODE`
+  and `TDC_FS_FILE_SYSTEM_NAME`. The TiDB Cloud public/private key pair is
+  only needed for this one-time provisioning step; nothing else in this repo,
+  including the sandboxes, ever sees it.
 
 - An LLM API key for any OpenAI-compatible endpoint. The default configuration
   targets [Z.ai's GLM-5.2](https://docs.z.ai/guides/overview/quick-start) — an
@@ -54,7 +57,7 @@ also an API.
 
 ```bash
 pnpm install
-cp .env.example .env   # fill it in; fs_* values come from ~/.tdc/config and ~/.tdc/credentials
+cp .env.example .env   # fill in TDC_REGION_CODE / TDC_FS_FILE_SYSTEM_NAME / TDC_FS_TOKEN
 pnpm build             # build the E2B template (once)
 pnpm test              # smoke test: mount, write, read back, mountless verify
 pnpm demo              # the 3-act demo
@@ -62,9 +65,12 @@ pnpm demo              # the 3-act demo
 
 ## How the sandbox gets credentials
 
-`tdc` fs commands read the filesystem identity and API key from profile files, not
-environment variables. `lib.ts` renders `~/.tdc/config` and `~/.tdc/credentials`
-inside each sandbox from your `.env` values before mounting. See `renderTdcProfile`.
+`tdc` has a token-only mode built for exactly this kind of ephemeral machine: no
+`tdc configure`, no TiDB Cloud API keys, no `~/.tdc/` profile files — just
+`TDC_FS_TOKEN`, `TDC_REGION_CODE`, and `TDC_FS_FILE_SYSTEM_NAME` as environment
+variables. `lib.ts`'s `createSandbox()` passes those three straight from your
+`.env` into `Sandbox.create()`'s `envs` option, so every `tdc` command run
+inside the sandbox picks them up automatically before mounting.
 
 ## Also possible with `tdc fs` (not shown here)
 

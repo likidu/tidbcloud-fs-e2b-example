@@ -1,3 +1,4 @@
+import type OpenAI from 'openai'
 import {
   LLM_MODEL,
   MOUNT_PATH,
@@ -12,18 +13,7 @@ import {
   writeFileViaMount,
 } from './lib'
 
-requireEnvs([
-  'E2B_API_KEY',
-  'LLM_API_KEY',
-  'TDC_REGION_CODE',
-  'TDC_PUBLIC_KEY',
-  'TDC_PRIVATE_KEY',
-  'TDC_FS_RESOURCE_NAME',
-  'TDC_FS_TENANT_ID',
-  'TDC_FS_CLOUD_PROVIDER',
-  'TDC_FS_REGION_CODE',
-  'TDC_FS_API_KEY',
-])
+requireEnvs(['E2B_API_KEY', 'LLM_API_KEY', 'TDC_REGION_CODE', 'TDC_FS_FILE_SYSTEM_NAME', 'TDC_FS_TOKEN'])
 
 const llm = llmClient()
 
@@ -32,7 +22,10 @@ async function ask(label: string, prompt: string, maxTokens: number): Promise<st
     model: LLM_MODEL,
     max_tokens: maxTokens,
     messages: [{ role: 'user', content: prompt }],
-  })
+    // GLM-5.2 defaults to extended thinking, which burns the whole max_tokens
+    // budget on hidden reasoning_content and returns an empty visible answer.
+    thinking: { type: 'disabled' },
+  } as OpenAI.Chat.ChatCompletionCreateParamsNonStreaming)
   const text = (r.choices[0]?.message?.content ?? '').trim()
   if (!text) throw new Error(`empty completion from ${LLM_MODEL} (${label})`)
   return text
