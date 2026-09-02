@@ -70,6 +70,17 @@ export async function createSandbox(): Promise<Sandbox> {
         `ti fs mount-file-system --mount-path ${MOUNT_PATH} --remote-path ${REMOTE_PATH} --driver fuse --ready-timeout 60s`
       )
     } catch (err) {
+      // The drive9 mount supervisor leaves its real error in a sandbox-local
+      // log that dies with the sandbox — surface it before we lose it.
+      const diag = await sbx.commands
+        .run(
+          'ls -l /dev/fuse 2>&1; grep fuse /proc/filesystems 2>&1; ' +
+            'tail -n 40 /home/user/.ti/drive9-home/*/*/.cache/drive9/mount-logs/*.log 2>&1',
+          { timeoutMs: 15_000 }
+        )
+        .then((r) => `${r.stdout}\n${r.stderr}`)
+        .catch((e: unknown) => `diagnostics unavailable: ${e}`)
+      console.log(pc.dim(`  [mount] diagnostics:\n${diag.trim()}`))
       throw new Error(
         `ti fs mount failed inside the sandbox — check E2B network egress to the FS data plane and the TI_REGION_CODE/TI_FS_TOKEN values in .env. Cause: ${err}`
       )
