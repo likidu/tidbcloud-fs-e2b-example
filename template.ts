@@ -2,7 +2,7 @@ import { Template } from 'e2b'
 
 // Pin the template to a tested release. A floating /latest URL can leave an
 // older binary in E2B's cached build layer after a new release is published.
-const TI_VERSION = 'v0.2.1'
+const TI_VERSION = 'v0.2.3'
 const TI_INSTALL_URL =
   process.env.TI_INSTALL_URL ||
   `https://github.com/tidbcloud/ti-cli/releases/download/${TI_VERSION}/install.sh`
