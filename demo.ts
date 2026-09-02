@@ -6,7 +6,7 @@ import {
   REMOTE_PATH,
   createSandbox,
   ensureRemoteDir,
-  hostTdc,
+  hostTi,
   llmClient,
   requireEnvs,
   run,
@@ -14,7 +14,7 @@ import {
   writeFileViaMount,
 } from './lib'
 
-requireEnvs(['E2B_API_KEY', 'LLM_API_KEY', 'TDC_REGION_CODE', 'TDC_FS_FILE_SYSTEM_NAME', 'TDC_FS_TOKEN'])
+requireEnvs(['E2B_API_KEY', 'LLM_API_KEY', 'TI_REGION_CODE', 'TI_FS_TOKEN'])
 
 const llm = llmClient()
 
@@ -62,9 +62,9 @@ try {
 }
 
 console.log(pc.bold('\n=== Act 3: both sandboxes are dead — read everything with no mount at all ==='))
-hostTdc('ls', '--path', REMOTE_PATH)
-hostTdc('cat', '--path', `${REMOTE_PATH}/answer.txt`)
+hostTi('ls', '--path', REMOTE_PATH)
+hostTi('cat', '--path', `${REMOTE_PATH}/answer.txt`)
 const keyword = (question.match(/[A-Za-z]{5,}/g) ?? ['question'])[0]
-hostTdc('grep', '--pattern', keyword, '--path', REMOTE_PATH)
+hostTi('grep', '--pattern', keyword, '--path', REMOTE_PATH)
 
 console.log('\nThe filesystem outlived both sandboxes, and act 3 never mounted anything.')
