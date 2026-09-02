@@ -30,16 +30,25 @@ jobs:
     if: github.event_name != 'pull_request_target' || contains(github.event.pull_request.labels.*.name, 'run-e2e')
     env:
       E2B_API_KEY: ${{ secrets.E2B_API_KEY }}
-      TDC_REGION_CODE: ${{ secrets.TDC_REGION_CODE }}
-      TDC_FS_FILE_SYSTEM_NAME: ${{ secrets.TDC_FS_FILE_SYSTEM_NAME }}
-      TDC_FS_TOKEN: ${{ secrets.TDC_FS_TOKEN }}
+      # Repo secrets carry the ti-era names; the code under test may speak
+      # either convention (main: TDC_*, ti-CLI migration PRs: TI_*).
+      # Map both so every ref finds its variables.
+      TDC_REGION_CODE: ${{ secrets.TI_REGION_CODE }}
+      TDC_FS_FILE_SYSTEM_NAME: ${{ secrets.TI_FS_FILE_SYSTEM_NAME }}
+      TDC_FS_TOKEN: ${{ secrets.TI_FS_TOKEN }}
+      TI_REGION_CODE: ${{ secrets.TI_REGION_CODE }}
+      TI_FS_FILE_SYSTEM_NAME: ${{ secrets.TI_FS_FILE_SYSTEM_NAME }}
+      TI_FS_TOKEN: ${{ secrets.TI_FS_TOKEN }}
     steps:
       # pull_request_target defaults to the base ref — check out the PR head
-      # explicitly so the code under test is the code being reviewed.
+      # explicitly so the code under test is the code being reviewed. The
+      # run-e2e label gate above is the maintainer approval that makes this
+      # fork checkout safe to opt into (gh.io/securely-using-pull_request_target).
       - uses: actions/checkout@v5
         with:
           ref: ${{ github.event.pull_request.head.sha || github.ref }}
           persist-credentials: false
+          allow-unsafe-pr-checkout: true
 
       - uses: pnpm/action-setup@v6
 
@@ -51,15 +60,17 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Install tdc CLI (needed on the runner for mountless verification)
+      - name: Install tdc + ti CLIs (runner-side, for mountless verification)
         run: |
           curl -fsSL https://github.com/tidbcloud/tdc/releases/latest/download/install.sh | sh -s -- --version latest --install-dir /usr/local/bin --yes
           tdc --version
+          curl -fsSL https://github.com/tidbcloud/ti-cli/releases/latest/download/install.sh | sh -s -- --version latest --install-dir /usr/local/bin --yes
+          ti --version
 
       - name: Preflight — required repo secrets
         run: |
           missing=0
-          for v in E2B_API_KEY TDC_REGION_CODE TDC_FS_FILE_SYSTEM_NAME TDC_FS_TOKEN; do
+          for v in E2B_API_KEY TI_REGION_CODE TI_FS_FILE_SYSTEM_NAME TI_FS_TOKEN; do
             if [ -z "$(printenv "$v")" ]; then
               echo "::error::missing repo secret $v (repo Settings → Secrets and variables → Actions)"
               missing=1
