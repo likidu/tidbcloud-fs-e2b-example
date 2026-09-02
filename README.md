@@ -63,6 +63,23 @@ pnpm test              # smoke test: mount, write, read back, mountless verify
 pnpm demo              # the 3-act demo
 ```
 
+## CI
+
+Two GitHub Actions workflows test every PR:
+
+| Workflow | Runs | What it does |
+|---|---|---|
+| `checks` | every PR + push to `main` | `pnpm typecheck`, `pnpm test:unit` — free, no secrets |
+| `e2e` | push to `main`, manual dispatch, or PRs labeled `run-e2e` | full smoke test: rebuilds the E2B template as `tidbcloud-fs-ci`, then `pnpm test` (sandbox mount, write, read-back, mountless verify) |
+
+The E2E workflow needs these repo secrets (Settings → Secrets and variables →
+Actions): `E2B_API_KEY`, `TDC_REGION_CODE`, `TDC_FS_FILE_SYSTEM_NAME`,
+`TDC_FS_TOKEN`. Because it spends real E2B sandbox time and touches the shared
+filesystem, it never runs automatically on fork PRs — a maintainer opts a PR in
+by adding the `run-e2e` label, which approves running that PR's code with the
+repo secrets (fork PRs don't receive secrets on ordinary `pull_request`
+events).
+
 ## How the sandbox gets credentials
 
 `tdc` has a token-only mode built for exactly this kind of ephemeral machine: no
