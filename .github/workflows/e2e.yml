@@ -62,9 +62,12 @@ jobs:
 
       - name: Install tdc + ti CLIs (runner-side, for mountless verification)
         run: |
-          curl -fsSL https://github.com/tidbcloud/tdc/releases/latest/download/install.sh | sh -s -- --version latest --install-dir /usr/local/bin --yes
+          # v0.1.7 is the last tdc-branded release; the tdc repo's "latest"
+          # now installs the renamed `ti` binary. The ti installer takes no
+          # --version flag.
+          curl -fsSL https://github.com/tidbcloud/tdc/releases/download/v0.1.7/install.sh | sh -s -- --version v0.1.7 --install-dir /usr/local/bin --yes
           tdc --version
-          curl -fsSL https://github.com/tidbcloud/ti-cli/releases/latest/download/install.sh | sh -s -- --version latest --install-dir /usr/local/bin --yes
+          curl -fsSL https://github.com/tidbcloud/ti-cli/releases/latest/download/install.sh | sh -s -- --install-dir /usr/local/bin --yes
           ti --version
 
       - name: Preflight — required repo secrets
