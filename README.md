@@ -30,7 +30,7 @@ also an API.
   to provision a TiDB Cloud FS resource:
 
   ```bash
-  curl -fsSL https://github.com/tidbcloud/tdc/releases/latest/download/install.sh | sh -s -- --yes
+  curl -fsSL https://github.com/tidbcloud/tdc/releases/download/v0.1.7/install.sh | sh -s -- --version v0.1.7 --yes
   export PATH="$HOME/.tdc/bin:$PATH"   # add to your shell profile to persist
 
   tdc configure --non-interactive --region-code aws-us-east-1 \
@@ -38,6 +38,9 @@ also an API.
   tdc fs create-file-system --file-system-name workspace \
     --query fs_token --output text
   ```
+
+  (v0.1.7 is pinned because the `tdc` repo's "latest" release now installs the
+  renamed [`ti`](https://github.com/tidbcloud/ti-cli) CLI instead.)
 
   The last command prints an `fs_token` — a credential scoped to that one
   filesystem. Put it in `.env` as `TDC_FS_TOKEN`, alongside `TDC_REGION_CODE`
