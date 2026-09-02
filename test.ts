@@ -10,9 +10,9 @@ import {
   writeFileViaMount,
 } from './lib'
 
-requireEnvs(['E2B_API_KEY', 'TDC_REGION_CODE', 'TDC_FS_FILE_SYSTEM_NAME', 'TDC_FS_TOKEN'])
+requireEnvs(['E2B_API_KEY', 'TI_REGION_CODE', 'TI_FS_FILE_SYSTEM_NAME', 'TI_FS_TOKEN'])
 
-const stamp = `tdc fs smoke ${Date.now()}`
+const stamp = `ti fs smoke ${Date.now()}`
 
 console.log('smoke: sandbox mount, write, read-back')
 ensureRemoteDir()
