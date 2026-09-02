@@ -30,14 +30,7 @@ jobs:
     if: github.event_name != 'pull_request_target' || contains(github.event.pull_request.labels.*.name, 'run-e2e')
     env:
       E2B_API_KEY: ${{ secrets.E2B_API_KEY }}
-      # Repo secrets carry the ti-era names; the code under test may speak
-      # either convention (main: TDC_*, ti-CLI migration PRs: TI_*).
-      # Map both so every ref finds its variables.
-      TDC_REGION_CODE: ${{ secrets.TI_REGION_CODE }}
-      TDC_FS_FILE_SYSTEM_NAME: ${{ secrets.TI_FS_FILE_SYSTEM_NAME }}
-      TDC_FS_TOKEN: ${{ secrets.TI_FS_TOKEN }}
       TI_REGION_CODE: ${{ secrets.TI_REGION_CODE }}
-      TI_FS_FILE_SYSTEM_NAME: ${{ secrets.TI_FS_FILE_SYSTEM_NAME }}
       TI_FS_TOKEN: ${{ secrets.TI_FS_TOKEN }}
     steps:
       # pull_request_target defaults to the base ref — check out the PR head
@@ -60,20 +53,15 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Install tdc + ti CLIs (runner-side, for mountless verification)
+      - name: Install ti CLI (runner-side, for mountless verification)
         run: |
-          # v0.1.7 is the last tdc-branded release; the tdc repo's "latest"
-          # now installs the renamed `ti` binary. The ti installer takes no
-          # --version flag.
-          curl -fsSL https://github.com/tidbcloud/tdc/releases/download/v0.1.7/install.sh | sh -s -- --version v0.1.7 --install-dir /usr/local/bin --yes
-          tdc --version
           curl -fsSL https://github.com/tidbcloud/ti-cli/releases/latest/download/install.sh | sh -s -- --install-dir /usr/local/bin --yes
           ti --version
 
       - name: Preflight — required repo secrets
         run: |
           missing=0
-          for v in E2B_API_KEY TI_REGION_CODE TI_FS_FILE_SYSTEM_NAME TI_FS_TOKEN; do
+          for v in E2B_API_KEY TI_REGION_CODE TI_FS_TOKEN; do
             if [ -z "$(printenv "$v")" ]; then
               echo "::error::missing repo secret $v (repo Settings → Secrets and variables → Actions)"
               missing=1

@@ -75,14 +75,11 @@ Two GitHub Actions workflows test every PR:
 | `e2e` | push to `main`, manual dispatch, or PRs labeled `run-e2e` | full smoke test: rebuilds the E2B template as `tidbcloud-fs-ci`, then `pnpm test` (sandbox mount, write, read-back, mountless verify) |
 
 The E2E workflow needs these repo secrets (Settings → Secrets and variables →
-Actions): `E2B_API_KEY`, `TI_REGION_CODE`, `TI_FS_FILE_SYSTEM_NAME`,
-`TI_FS_TOKEN`. The workflow maps them into both the `TDC_*` (main) and `TI_*`
-(ti-CLI PRs) environment conventions, so the code under test finds its
-variables whichever way it names them. Because it spends real E2B sandbox time
-and touches the shared filesystem, it never runs automatically on fork PRs — a
-maintainer opts a PR in by adding the `run-e2e` label, which approves running
-that PR's code with the repo secrets (fork PRs don't receive secrets on
-ordinary `pull_request` events).
+Actions): `E2B_API_KEY`, `TI_REGION_CODE`, `TI_FS_TOKEN`. Because it spends
+real E2B sandbox time and touches the shared filesystem, it never runs
+automatically on fork PRs — a maintainer opts a PR in by adding the `run-e2e`
+label, which approves running that PR's code with the repo secrets (fork PRs
+don't receive secrets on ordinary `pull_request` events).
 
 ## How the sandbox gets credentials
 
