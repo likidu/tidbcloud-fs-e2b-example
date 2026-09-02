@@ -16,6 +16,12 @@ const stamp = `ti fs smoke ${Date.now()}`
 
 console.log('smoke: sandbox mount, write, read-back')
 ensureRemoteDir()
+
+// ensureRemoteDir swallows non-ENOENT failures (e.g. auth) — validate the
+// token/region/data-plane from the host first so a dead token fails loudly
+// here instead of as an opaque sandbox mount error.
+console.log('smoke: host-side ti fs auth check (token, region, data plane)')
+hostTi('ls', '--path', REMOTE_PATH)
 const sbx = await createSandbox()
 try {
   await writeFileViaMount(sbx, `${MOUNT_PATH}/smoke.txt`, stamp)
